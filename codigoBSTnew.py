@@ -84,7 +84,7 @@ def spectrum(arrayOm,num):
     plt.legend(bbox_to_anchor=(1.01, 1), loc='upper left', borderaxespad=0.)    
     #plt.ylim(1e-7,1e2)
     plt.tight_layout()
-    plt.savefig('spectrumBST.png', dpi=500)
+    plt.savefig('spectrumBST', dpi=500)
     plt.show()
     
 def normEmissionPlot(a,b,num=300): 
