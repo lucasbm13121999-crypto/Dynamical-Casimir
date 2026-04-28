@@ -25,6 +25,7 @@ wT=5.7e9
 gammaCTE=2.8e8
 einf=2.896
 e0=einf+(1.3*10/5.7)**2
+print(e0)
 #e0=3.9 #silica
 err=1
 correctionFactor=1000
