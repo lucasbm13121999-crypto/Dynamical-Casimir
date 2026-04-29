@@ -29,7 +29,6 @@ c=299792458#m/s
 err=1
 vs=1.5e5#carbon nanotube sound speed in m/s
 #picos={np.sqrt(-gamma*np.sqrt(-4*Npa*wp**2 + gamma**2)/(2*Om**2) + (2*Npa*wp**2 - gamma**2)/(2*Om**2)),np.sqrt(gamma*np.sqrt(-4*Npa*wp**2 + gamma**2)/(2*Om**2) + (2*Npa*wp**2 - gamma**2)/(2*Om**2)),np.sqrt(-gamma*np.sqrt(-4*Nperp*wp**2 + gamma**2)/(2*Om**2) + (2*Nperp*wp**2 - gamma**2)/(2*Om**2)),np.sqrt(gamma*np.sqrt(-4*Nperp*wp**2 + gamma**2)/(2*Om**2) + (2*Nperp*wp**2 - gamma**2)/(2*Om**2)),-np.sqrt(-gamma*np.sqrt(-4*Npa*wp**2 + gamma**2)/(2*Om**2) + (2*Npa*wp**2 - gamma**2)/(2*Om**2)),-np.sqrt(gamma*np.sqrt(-4*Npa*wp**2 + gamma**2)/(2*Om**2) + (2*Npa*wp**2 - gamma**2)/(2*Om**2)),-np.sqrt(-gamma*np.sqrt(-4*Nperp*wp**2 + gamma**2)/(2*Om**2) + (2*Nperp*wp**2 - gamma**2)/(2*Om**2)),-np.sqrt(gamma*np.sqrt(-4*Nperp*wp**2 + gamma**2)/(2*Om**2) + (2*Nperp*wp**2 - gamma**2)/(2*Om**2))}
-correctionFactor=1000
 def Om(rpa):
     return vs/rpa
 def Npa(exc):

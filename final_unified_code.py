@@ -18,7 +18,7 @@ import matplotlib.pyplot as plt
 plt.rcParams.update({
     # --- Fontes e Textos ---
     "font.family": "serif",
-    "font.serif": ["Computer Modern Roman"],
+    "font.serif": ["CMU Serif", "Computer Modern Roman", "DejaVu Serif"],
     "mathtext.fontset": "cm",       # <-- ADICIONADO: Garante que a matemática use Computer Modern mesmo sem LaTeX
     "text.usetex": False,           # Pode mudar para True se tiver o TeX Live / MiKTeX instalado
     
@@ -57,10 +57,159 @@ plt.rcParams.update({
     "ytick.major.size": 4,
     "ytick.minor.size": 2,
 })
-#----------------------------------------------------------------------------------
-#Calculations
-#----------------------------------------------------------------------------------
 
-#----------------------------------------------------------------------------------
-#Plots
-#----------------------------------------------------------------------------------
+
+
+def fixed_geometry():
+    #----------------------------------------------------------------------------------
+    #Constants
+    #----------------------------------------------------------------------------------
+    eps0=8.8541878188e-12 #F m^-1
+    c=299792458#m/s
+    wT=5.7e9
+    gamma=2.8e8
+    einf=2.896
+    e0=einf+(1.3*10/5.7)**2-1
+    eps0=8.8541878188e-12 #F m^-1
+    c=299792458#m/s
+    err=1
+    vs=1.5e5#carbon nanotube sound speed in m/s
+
+    #Geometric Constants
+    Nperp=0.15
+    Npa=0.7
+    rperp=75e-9 #m
+    rpa=2*rperp      
+    #----------------------------------------------------------------------------------
+    #Calculations 
+    #----------------------------------------------------------------------------------
+    def lowfreqEmission(Om):
+        c1=4*np.pi*eps0*rpa*rperp**2/6*(1/Npa-1/Nperp)
+        c2=1/(9*np.pi*c**6*(4*np.pi*eps0)**2)
+        def lowfreq(w):
+            return w**3*np.abs(w-2*Om)**3
+        integral0,err0=sci.integrate.quad(lowfreq,0,2*Om)
+        return np.abs(c1*(e0-1)**2/((e0-1+1/Npa)*(e0-1+1/Nperp)))**2*c2*integral0
+
+    def epsilon(w,gamma):
+        return einf+(e0-einf)/(1-(w/wT)**2+1j*w*gamma/wT**2)
+
+    def dimLessDelta(w,gamma):
+        return (epsilon(w,gamma)-1)**2/((epsilon(w,gamma)-1+1/Npa)*(epsilon(w,gamma)-1+1/Nperp))
+        
+    def emissionIntegrand(u,Om,gamma):
+        return (1-u**2)**3*np.abs(dimLessDelta(u*Om,gamma))**2
+
+    def emissionBST(Om,gamma):
+        prefactor=1/(36*9*np.pi*c**6)*(1/Npa-1/Nperp)**2*(rpa*rperp**2)**2*Om**7
+        integral,err=sci.integrate.quad(emissionIntegrand,-1,1,args=(Om,gamma),limit=2000)
+        return integral*prefactor
+    #----------------------------------------------------------------------------------
+    #Plots
+    #----------------------------------------------------------------------------------
+    '''
+    def spectrumPlt(arrayOm,num):
+        for i in range(arrayOm.size):
+            Om1=arrayOm[i]
+            uPlt=np.linspace(0,2,num)
+            specPlt=np.zeros(uPlt.size)
+            for j in range(uPlt.size):
+                specPlt[j]=1/(36*9*np.pi*c**6)*(1/Npa-1/Nperp)**2*(rpa*rperp**2)**2*Om1**6*emissionIntegrand(uPlt[j]-1, Om1,gamma)
+            #specPlt=specPlt/specPlt.max()
+            plt.ylabel(r'$d\Gamma/d\omega$')
+            plt.xlabel(r'$\omega/\Omega$')
+            plt.grid(True)
+            plt.plot(uPlt,specPlt, label=f'$\Omega={arrayOm[i]/wT}\,\omega_T$')
+        #gradient_hex = ["#8B0000", "#FF8C00", "#FFD700", "#006400", "#00008B"]
+        plt.yscale('log')
+        #plt.legend(bbox_to_anchor=(1.01, 1), loc='upper left', borderaxespad=0.)    
+        #plt.ylim(1e-7,1e2)
+        plt.tight_layout()
+        plt.savefig('padrao_prl_final_plots/spectrumBST')
+        plt.show()
+        
+    def normEmissionPlot(a,b,num=300): 
+        omPlt=np.logspace(a,b,num)
+        emissionPlt2=np.zeros_like(omPlt)
+        for i in range(omPlt.size):
+            emissionPlt2[i]=emissionBST(omPlt[i],gamma)/lowfreqEmission(omPlt[i])
+        plt.ylabel(r'$\Gamma/\Gamma_{qs}$')
+        plt.xlabel(r'$\Omega$ (rad/s)')
+        plt.grid(True)
+        plt.loglog(omPlt,emissionPlt2)
+        plt.savefig('padrao_prl_final_plots/normEmission')
+        plt.show()
+    #normEmissionPlot(8,12,300)
+    listOm=wT*np.array([1/2,1.3,1.90,10])
+    spectrumPlt(listOm,1000)
+    '''
+    def plot_combined_prl(arrayOm, a, b, num_spec=1000, num_norm=300):
+        # Cria a figura e os dois eixos (ax1 = esquerda, ax2 = direita)
+        # 6.75 polegadas é o padrão PRL para figuras ocupando duas colunas
+        fig, (ax1, ax2) = plt.subplots(1,2, figsize=(6.75, 2.75))
+        
+        # ==========================================
+        # PAINEL (a): spectrumPlt
+        # ==========================================
+        styles = ['-', '--', '-.', (0, (3, 1, 1, 1))] # sólida, tracejada, traço-ponto, pontilhada densa
+        # O uso de um mapa de cores sequencial (ex: 'viridis') garante 
+        # que as cores tenham brilhos diferentes quando convertidas para cinza
+        colors = plt.cm.viridis(np.linspace(0, 0.8, arrayOm.size))
+        for i in range(arrayOm.size):
+            Om1 = arrayOm[i]
+            uPlt = np.linspace(0, 2, num_spec)
+            specPlt = np.zeros(uPlt.size)
+            
+            for j in range(uPlt.size):
+                # Assumo que as constantes e a função emissionIntegrand já estão definidas no seu script
+                specPlt[j] = 1/(36*9*np.pi*c**6)*(1/Npa-1/Nperp)**2*(rpa*rperp**2)**2*Om1**6*emissionIntegrand(uPlt[j]-1, Om1, gamma)
+            
+            # Plota no eixo 1 (ax1)
+            ax1.plot(uPlt, specPlt,color=colors[i], label=f'$\Omega={arrayOm[i]/wT:g}\,\omega_T$')
+            
+        ax1.set_ylabel(r'$\rm{d}\Gamma/\rm{d}\omega$')
+        ax1.set_xlabel(r'$\omega/\Omega$')
+        ax1.set_yscale('log')
+        ax1.grid(True, linestyle=':', alpha=0.25) # Grade mais suave para não poluir
+        
+        # Adicionando a legenda (ajuste a posição se necessário)
+        ax1.legend(loc='best', frameon=False, labelspacing=0.2) 
+        
+        # Texto '(a)' no canto superior esquerdo
+        ax1.text(-0.15, 1.05, r'(a)', transform=ax1.transAxes, fontsize=10, fontweight='bold', va='top', ha='right')
+
+        # ==========================================
+        # PAINEL (b): normEmissionPlot
+        # ==========================================
+        omPlt = np.logspace(a, b, num_norm)
+        emissionPlt2 = np.zeros_like(omPlt)
+        
+        for i in range(omPlt.size):
+            emissionPlt2[i] = emissionBST(omPlt[i], gamma)/lowfreqEmission(omPlt[i])
+            
+        # Plota no eixo 2 (ax2) usando loglog
+        ax2.loglog(omPlt, emissionPlt2,color='black') 
+        
+        ax2.set_ylabel(r'$\Gamma/\Gamma_{\rm{qs}}$')
+        ax2.set_xlabel(r'$\Omega$ (rad/s)')
+        ax2.grid(True, linestyle=':', alpha=0.25)
+        
+        # Texto '(b)' no canto superior esquerdo
+        ax2.text(-0.15, 1.05, r'(b)', transform=ax2.transAxes, fontsize=10, fontweight='bold', va='top', ha='right')
+
+        # ==========================================
+        # AJUSTES FINAIS E EXPORTAÇÃO
+        # ==========================================
+        # Ajusta o espaçamento entre os subplots para evitar sobreposição de textos
+        plt.tight_layout()
+        
+        # Salva a figura combinada com as configurações padrão que discutimos antes
+        plt.savefig('padrao_prl_final_plots/combined_spectrum_emission.pdf', bbox_inches='tight')
+        plt.show()
+
+    # --- Chamando a função ---
+    # Substitua pelas suas chamadas reais
+    listOm = wT * np.array([1/2, 1.3, 1.90, 10])
+    plot_combined_prl(listOm, a=8, b=12)
+#MAIN
+fixed_geometry()
