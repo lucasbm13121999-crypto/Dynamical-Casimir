@@ -25,13 +25,13 @@ plt.rcParams.update({
     # --- Tamanhos ---
     "font.size": 10,
     "axes.labelsize": 10,
-    "legend.fontsize": 8,
-    "xtick.labelsize": 8,
-    "ytick.labelsize": 8,
+    "legend.fontsize": 10,
+    "xtick.labelsize": 10,
+    "ytick.labelsize": 10,
     "axes.titlesize": 10,
     
     # --- Dimensões e Resolução ---
-    "figure.figsize": (3.37, 2.5),  # Largura de 1 coluna PRL
+    "figure.figsize": (3.37, 3.37/1.61),  # Largura de 1 coluna PRL
     "savefig.dpi": 600,             # 600 para cores/pcolormesh, 1200 para pure line art (se rasterizar algo)
     "savefig.format": 'pdf',
     "savefig.bbox": 'tight',        # <-- ADICIONADO: Evita que os labels sejam cortados ao salvar
@@ -59,7 +59,7 @@ plt.rcParams.update({
 })
 
 
-
+#Fig 2
 def fixed_geometry():
     #----------------------------------------------------------------------------------
     #Constants
@@ -107,51 +107,14 @@ def fixed_geometry():
     #----------------------------------------------------------------------------------
     #Plots
     #----------------------------------------------------------------------------------
-    '''
-    def spectrumPlt(arrayOm,num):
-        for i in range(arrayOm.size):
-            Om1=arrayOm[i]
-            uPlt=np.linspace(0,2,num)
-            specPlt=np.zeros(uPlt.size)
-            for j in range(uPlt.size):
-                specPlt[j]=1/(36*9*np.pi*c**6)*(1/Npa-1/Nperp)**2*(rpa*rperp**2)**2*Om1**6*emissionIntegrand(uPlt[j]-1, Om1,gamma)
-            #specPlt=specPlt/specPlt.max()
-            plt.ylabel(r'$d\Gamma/d\omega$')
-            plt.xlabel(r'$\omega/\Omega$')
-            plt.grid(True)
-            plt.plot(uPlt,specPlt, label=f'$\Omega={arrayOm[i]/wT}\,\omega_T$')
-        #gradient_hex = ["#8B0000", "#FF8C00", "#FFD700", "#006400", "#00008B"]
-        plt.yscale('log')
-        #plt.legend(bbox_to_anchor=(1.01, 1), loc='upper left', borderaxespad=0.)    
-        #plt.ylim(1e-7,1e2)
-        plt.tight_layout()
-        plt.savefig('padrao_prl_final_plots/spectrumBST')
-        plt.show()
-        
-    def normEmissionPlot(a,b,num=300): 
-        omPlt=np.logspace(a,b,num)
-        emissionPlt2=np.zeros_like(omPlt)
-        for i in range(omPlt.size):
-            emissionPlt2[i]=emissionBST(omPlt[i],gamma)/lowfreqEmission(omPlt[i])
-        plt.ylabel(r'$\Gamma/\Gamma_{qs}$')
-        plt.xlabel(r'$\Omega$ (rad/s)')
-        plt.grid(True)
-        plt.loglog(omPlt,emissionPlt2)
-        plt.savefig('padrao_prl_final_plots/normEmission')
-        plt.show()
-    #normEmissionPlot(8,12,300)
-    listOm=wT*np.array([1/2,1.3,1.90,10])
-    spectrumPlt(listOm,1000)
-    '''
     def plot_combined_prl(arrayOm, a, b, num_spec=1000, num_norm=300):
         # Cria a figura e os dois eixos (ax1 = esquerda, ax2 = direita)
         # 6.75 polegadas é o padrão PRL para figuras ocupando duas colunas
-        fig, (ax1, ax2) = plt.subplots(1,2, figsize=(6.75, 2.75))
+        fig, (ax1, ax2) = plt.subplots(2,1,figsize=(3.375, 3.375/1.61*2))#3.375/1.61*2
         
         # ==========================================
         # PAINEL (a): spectrumPlt
         # ==========================================
-        styles = ['-', '--', '-.', (0, (3, 1, 1, 1))] # sólida, tracejada, traço-ponto, pontilhada densa
         # O uso de um mapa de cores sequencial (ex: 'viridis') garante 
         # que as cores tenham brilhos diferentes quando convertidas para cinza
         colors = plt.cm.viridis(np.linspace(0, 0.8, arrayOm.size))
@@ -161,19 +124,18 @@ def fixed_geometry():
             specPlt = np.zeros(uPlt.size)
             
             for j in range(uPlt.size):
-                # Assumo que as constantes e a função emissionIntegrand já estão definidas no seu script
                 specPlt[j] = 1/(36*9*np.pi*c**6)*(1/Npa-1/Nperp)**2*(rpa*rperp**2)**2*Om1**6*emissionIntegrand(uPlt[j]-1, Om1, gamma)
             
             # Plota no eixo 1 (ax1)
             ax1.plot(uPlt, specPlt,color=colors[i], label=f'$\Omega={arrayOm[i]/wT:g}\,\omega_T$')
-            
+        ax1.set_ylim(1e-45,1e-27)
         ax1.set_ylabel(r'$\rm{d}\Gamma/\rm{d}\omega$')
         ax1.set_xlabel(r'$\omega/\Omega$')
         ax1.set_yscale('log')
         ax1.grid(True, linestyle=':', alpha=0.25) # Grade mais suave para não poluir
-        
+        ax1.set_yticks([1e-45,1e-40,1e-35, 1e-30])
         # Adicionando a legenda (ajuste a posição se necessário)
-        ax1.legend(loc='best', frameon=False, labelspacing=0.2) 
+        #ax1.legend(loc='best', frameon=False, labelspacing=0.15) 
         
         # Texto '(a)' no canto superior esquerdo
         ax1.text(-0.15, 1.05, r'(a)', transform=ax1.transAxes, fontsize=10, fontweight='bold', va='top', ha='right')
@@ -186,12 +148,14 @@ def fixed_geometry():
         
         for i in range(omPlt.size):
             emissionPlt2[i] = emissionBST(omPlt[i], gamma)/lowfreqEmission(omPlt[i])
-            
+
+        #mudando de unidade (rad/s -> GHz)
+        fPlt_GHz=omPlt*1e-9/(2*np.pi)
         # Plota no eixo 2 (ax2) usando loglog
-        ax2.loglog(omPlt, emissionPlt2,color='black') 
+        ax2.loglog(fPlt_GHz, emissionPlt2,color='black') 
         
         ax2.set_ylabel(r'$\Gamma/\Gamma_{\rm{qs}}$')
-        ax2.set_xlabel(r'$\Omega$ (rad/s)')
+        ax2.set_xlabel(r'$\Omega/(2\pi)$ (GHz)')
         ax2.grid(True, linestyle=':', alpha=0.25)
         
         # Texto '(b)' no canto superior esquerdo
@@ -202,14 +166,18 @@ def fixed_geometry():
         # ==========================================
         # Ajusta o espaçamento entre os subplots para evitar sobreposição de textos
         plt.tight_layout()
+        #plt.subplots_adjust(hspace=0.3)
         
-        # Salva a figura combinada com as configurações padrão que discutimos antes
         plt.savefig('padrao_prl_final_plots/combined_spectrum_emission.pdf', bbox_inches='tight')
         plt.show()
 
     # --- Chamando a função ---
     # Substitua pelas suas chamadas reais
     listOm = wT * np.array([1/2, 1.3, 1.90, 10])
-    plot_combined_prl(listOm, a=8, b=12)
+    plot_combined_prl(listOm, a=9, b=12)
+#---------------------------------------------------------------------------------
+
+def optimized_geometry():
+    a=0
 #MAIN
-fixed_geometry()
+#fixed_geometry()
