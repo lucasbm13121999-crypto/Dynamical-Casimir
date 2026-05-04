@@ -181,6 +181,11 @@ import matplotlib.pyplot as plt
 import scipy as sci
 import scipy.integrate
 
+import numpy as np
+import matplotlib.pyplot as plt
+import scipy as sci
+import scipy.integrate
+
 def optimized_geometry():
     #----------------------------------------------------------------------------------
     #Constants
@@ -251,17 +256,18 @@ def optimized_geometry():
         colorsA = plt.cm.viridis(np.linspace(0, 0.8, len(excList)))
 
         # CORREÇÃO LÓGICA: geomspace usa os valores reais passados na chamada da função
-        rpaPlt = np.logspace(a, b, num_a)
+        rpaPlt = np.geomspace(a, b, num_a)
         emissionPlt1 = np.zeros((len(excList), rpaPlt.size))
         
         for i in range(len(excList)):
             for j in range(rpaPlt.size):
                 emissionPlt1[i,j] = emissionBST(rpaPlt[j], excList[i])
-            # CORREÇÃO LÓGICA: Plot fora do loop 'j'
-            ax1.loglog(rpaPlt, emissionPlt1[i])
-            
+            # MUDANÇA DE UNIDADE m->um
+            ax1.loglog(rpaPlt*1e6, emissionPlt1[i],color=colorsA[i],label=f'$e={excList[i]:.2f}$')
+        #ax1.set_ylim(1e-16,1e-12)
         ax1.set_ylabel('$\Gamma$ (s$^{-1}$)')
         ax1.set_xlabel('$r_{\parallel}$ ($\mu$m)')
+        ax1.legend(loc='lower left',fontsize=8,frameon=False,labelspacing=0.15)
         ax1.grid(True, linestyle=':', alpha=0.25) 
         ax1.text(-0.15, 1.05, r'(a)', transform=ax1.transAxes, fontsize=10, fontweight='bold', va='top', ha='right')
 
@@ -271,7 +277,6 @@ def optimized_geometry():
         colorsB = plt.cm.viridis(np.linspace(0, 0.8, len(rpaList)))
 
         excPlt = np.linspace(0.001, 0.999, num_b)
-        # CORREÇÃO LÓGICA: Variável emissionPlt2 (não Plt1) deve ser usada aqui
         emissionPlt2 = np.zeros((len(rpaList), excPlt.size))
         
         for i in range(len(rpaList)):
@@ -285,25 +290,26 @@ def optimized_geometry():
             # Normalização (vetorial, tira a necessidade do loop j)
             emissionPlt2[i] = emissionPlt2[i] / maxi
             
-            # CORREÇÃO LÓGICA: Plot fora do loop 'j'
-            ax2.plot(excPlt, emissionPlt2[i])
+            ax2.plot(excPlt, emissionPlt2[i],color=colorsA[i],label=f'$r_{{\parallel}} = {rpaList[i]*1e6:2.0f}\ \mu\mathrm{{m}}$')
 
-        #ax2.set_ylabel(r'$\Gamma/\Gamma_{\rm{max}}$')
-        #ax2.set_xlabel(r'$e$')
+        ax2.set_ylabel(r'$\Gamma/\Gamma_{\rm{max}}$')
+        ax2.set_xlabel(r'$e$')
+        
         ax2.grid(True, linestyle=':', alpha=0.25)
         ax2.text(-0.15, 1.05, r'(b)', transform=ax2.transAxes, fontsize=10, fontweight='bold', va='top', ha='right')
-     
+        ax2.legend(loc='best',fontsize=8,frameon=False,labelspacing=0.15)
+
         # ==========================================
         # AJUSTES FINAIS E EXPORTAÇÃO
         # ==========================================
         plt.tight_layout()
-        plt.savefig('optimized_geometry.pdf', bbox_inches='tight')
+        plt.savefig('padrao_prl_final_plots/optimized_geometry.pdf', bbox_inches='tight')
         plt.show()
 
     # --- Chamando a função ---
     excList = [0.2, 0.6, 0.9, 0.99]    
     rpaList = [1e-6, 1.7e-5, 1.9e-5, 4e-5]
-    plot_combined_prl(excList, -6, -4, rpaList)
+    plot_combined_prl(excList, 1e-6, 1e-4, rpaList)
 
 #MAIN
 #fixed_geometry()
